@@ -4,21 +4,30 @@ var Promise = require('node-promise'),
 	all = Promise.all,
 	_ = require('underscore');
 
-function extractFiles(path) {
+function extractFiles(path,sheet_num) {
 	var unzip = require('unzip'),
 		deferred = defer();
+    var files = {};
+    var target = "xl/worksheets/sheet" + sheet_num + ".xml";
+    files[target] = {
+        deferred: defer()
+    };
+    files['xl/sharedStrings.xml'] = {
+        deferred: defer()
+    };
 
-	var files = {
-		'xl/worksheets/sheet1.xml': {
-			deferred: defer()
-		},
-		'xl/sharedStrings.xml': {
-			deferred: defer()
-		}
-	};
+//	var files = {
+//        "xl/worksheets/sheet1.xml" : {
+//			deferred: defer()
+//		},
+//		'xl/sharedStrings.xml': {
+//			deferred: defer()
+//		}
+//	};
+    console.log(files);
 
   var noop = function () {};
-	
+
 	var srcStream = path instanceof require('stream') ?
 		path :
 		require('fs').createReadStream(path);
@@ -67,10 +76,11 @@ function calculateDimensions (cells) {
     ];
 }
 
-function extractData(files) {
+function extractData(files,sheet_num) {
 	try {
+        console.log(files['xl/worksheets/sheet' + sheet_num + '.xml'].contents);
 		var libxmljs = require('libxmljs'),
-			sheet = libxmljs.parseXml(files['xl/worksheets/sheet1.xml'].contents),
+			sheet = libxmljs.parseXml(files['xl/worksheets/sheet' + sheet_num + '.xml'].contents),
 			strings = libxmljs.parseXml(files['xl/sharedStrings.xml'].contents),
 			ns = {a: 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'},
 			data = [];
@@ -151,9 +161,9 @@ function extractData(files) {
 	return data;
 }
 
-module.exports = function parseXlsx(path, cb) {
-	extractFiles(path).then(function(files) {
-		cb(null, extractData(files));
+module.exports = function parseXlsx(path,sheet_num, cb) {
+	extractFiles(path,sheet_num).then(function(files) {
+		cb(null, extractData(files,sheet_num));
 	},
 	function(err) {
 		cb(err);

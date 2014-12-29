@@ -13,7 +13,7 @@ describe('excel.js', function() {
 
       describe(filename + ' basic test', function() {
         it('should return the right value', function(done) {
-          parseXlsx(sheetsDir + '/' + filename, function(err, data) {
+          parseXlsx(sheetsDir + '/' + filename,1, function(err, data) {
             assert.deepEqual(data, expected);
             done(err);
           });
